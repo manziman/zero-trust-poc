@@ -1,0 +1,7 @@
+{
+  "access_token": "synthetic-txntoken-jwt",
+  "issued_token_type": "urn:ietf:params:oauth:token-type:txn_token",
+  "token_type": "N_A",
+  "expires_in": 60,
+  "scope": "schedule.appointment.create"
+}

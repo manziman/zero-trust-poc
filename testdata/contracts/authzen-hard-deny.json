@@ -1,0 +1,7 @@
+{
+  "_fixture_profile": "openid-authzen-authorization-api-1.0-final",
+  "decision": false,
+  "context": {
+    "reason": "scope does not permit this action"
+  }
+}

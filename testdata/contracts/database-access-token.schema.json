@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://custody.local/contracts/database-access-token.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["iss", "aud", "iat", "exp", "jti", "sub", "wl", "txn", "action", "org_id", "principal_kind", "access_profile", "resource", "db_role"],
+  "properties": {
+    "iss": {"const": "https://tts.custody.internal/database"},
+    "aud": {"const": "postgresql://custody"},
+    "iat": {"type": "integer"},
+    "exp": {"type": "integer"},
+    "jti": {"type": "string", "minLength": 1, "maxLength": 128},
+    "sub": {"type": "string", "minLength": 1},
+    "wl": {"type": "string", "minLength": 1},
+    "act": {"type": "object", "additionalProperties": false, "required": ["sub"], "properties": {"sub": {"type": "string", "minLength": 1}}},
+    "txn": {"type": "string", "minLength": 1, "maxLength": 128},
+    "action": {"enum": ["patient-records.read", "schedule.availability.read", "schedule.appointment.create", "patient-records.export", "patient-records.import"]},
+    "org_id": {"type": "string", "format": "uuid"},
+    "principal_kind": {"enum": ["human", "autonomous_agent", "external_machine"]},
+    "access_profile": {"enum": ["patient_self", "provider_assigned", "org_scoped"]},
+    "patient_id": {"type": "string", "pattern": "^[1-9][0-9]{0,18}$"},
+    "provider_id": {"type": "string", "pattern": "^[1-9][0-9]{0,18}$"},
+    "resource": {"type": "object"},
+    "db_role": {"enum": ["custody_patient_records_reader", "custody_schedule_availability_reader", "custody_schedule_appointment_creator", "custody_org_exporter", "custody_patient_importer"]}
+  }
+}

@@ -1,0 +1,254 @@
+name: custody
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-change-me-local-only}
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME: http://127.0.0.1:8080
+      CUSTODY_ALICE_PASSWORD: ${CUSTODY_ALICE_PASSWORD:-alice-local-only}
+      CUSTODY_AGENT_CLIENT_SECRET: ${CUSTODY_AGENT_CLIENT_SECRET:-agent-local-only}
+      CUSTODY_GATEWAY_CLIENT_SECRET: ${CUSTODY_GATEWAY_CLIENT_SECRET:-gateway-local-only}
+      CUSTODY_RESOURCE_CLIENT_SECRET: ${CUSTODY_RESOURCE_CLIENT_SECRET:-resource-local-only}
+      CUSTODY_AUTOMATION_CLIENT_SECRET: ${CUSTODY_AUTOMATION_CLIENT_SECRET:-automation-local-only}
+      CUSTODY_DEMO_APP_CLIENT_SECRET: ${CUSTODY_DEMO_APP_CLIENT_SECRET:-demo-app-local-only}
+      CUSTODY_EXTERNAL_EXPORTER_CLIENT_SECRET: ${CUSTODY_EXTERNAL_EXPORTER_CLIENT_SECRET:-external-exporter-local-only}
+      CUSTODY_DEMO_ORG_ADMIN_CLIENT_SECRET: ${CUSTODY_DEMO_ORG_ADMIN_CLIENT_SECRET:-demo-org-admin-local-only}
+      CUSTODY_DEMO_PROVIDER_CLIENT_SECRET: ${CUSTODY_DEMO_PROVIDER_CLIENT_SECRET:-demo-provider-local-only}
+      CUSTODY_DEMO_PATIENT_CLIENT_SECRET: ${CUSTODY_DEMO_PATIENT_CLIENT_SECRET:-demo-patient-local-only}
+    volumes:
+      - ./deploy/keycloak/custody-realm.json:/opt/keycloak/data/import/custody-realm.json:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          grep -q '200 OK' <&3
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - identity
+
+  postgres:
+    build:
+      context: .
+      dockerfile: deploy/postgres/Dockerfile
+    command:
+      - postgres
+      - -c
+      - oauth_validator_libraries=custody_jwt_validator
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-custody_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local-only}
+      POSTGRES_DB: ${POSTGRES_DB:-custody}
+    volumes:
+      - postgres_phase2_data:/var/lib/postgresql
+      - database_jwks:/var/lib/postgresql/jwks:ro
+    depends_on:
+      tts:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - data
+
+  tts:
+    build:
+      context: .
+      args:
+        SERVICE: tts
+    environment:
+      CUSTODY_LISTEN_ADDR: :8081
+      CUSTODY_HEALTH_URL: http://127.0.0.1:8081/health/ready
+      CUSTODY_KEYCLOAK_ISSUER: http://127.0.0.1:8080/realms/custody
+      CUSTODY_KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/custody/protocol/openid-connect/certs
+      CUSTODY_DATABASE_PUBLIC_KEY_PATH: /var/lib/custody/jwks/db-current.pub
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8081:8081"
+    healthcheck:
+      test: ["CMD", "/custody-service", "healthcheck"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    read_only: true
+    volumes:
+      - tts_keys:/var/lib/custody/keys
+      - database_jwks:/var/lib/custody/jwks
+    tmpfs:
+      - /tmp:size=1m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - identity
+
+  gateway:
+    build:
+      context: .
+      args:
+        SERVICE: gateway
+    environment:
+      CUSTODY_LISTEN_ADDR: :8082
+      CUSTODY_HEALTH_URL: http://127.0.0.1:8082/health/ready
+      CUSTODY_GATEWAY_CLIENT_SECRET: ${CUSTODY_GATEWAY_CLIENT_SECRET:-gateway-local-only}
+    ports:
+      - "127.0.0.1:8082:8082"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      tts:
+        condition: service_healthy
+      resource:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/custody-service", "healthcheck"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    read_only: true
+    tmpfs:
+      - /tmp:size=1m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - identity
+      - data
+
+  resource:
+    build:
+      context: .
+      args:
+        SERVICE: resource
+    environment:
+      CUSTODY_LISTEN_ADDR: :8083
+      CUSTODY_HEALTH_URL: http://127.0.0.1:8083/health/ready
+      CUSTODY_RESOURCE_CLIENT_SECRET: ${CUSTODY_RESOURCE_CLIENT_SECRET:-resource-local-only}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tts:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/custody-service", "healthcheck"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    read_only: true
+    tmpfs:
+      - /tmp:size=1m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - identity
+      - data
+
+  agent:
+    build:
+      context: .
+      args:
+        SERVICE: agent
+    environment:
+      CUSTODY_LISTEN_ADDR: :8085
+      CUSTODY_HEALTH_URL: http://127.0.0.1:8085/health/ready
+      CUSTODY_AGENT_CLIENT_SECRET: ${CUSTODY_AGENT_CLIENT_SECRET:-agent-local-only}
+    ports:
+      - "127.0.0.1:8085:8085"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      tts:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/custody-service", "healthcheck"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    read_only: true
+    tmpfs:
+      - /tmp:size=1m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - identity
+
+  oauth-smoke:
+    profiles: ["smoke"]
+    build:
+      context: .
+      dockerfile: spikes/postgres-oauth/Dockerfile
+    environment:
+      CUSTODY_OAUTH_DATABASE_URL: postgres://custody_patient_records_reader@postgres:5432/custody?sslmode=disable
+      CUSTODY_OAUTH_TOKEN: ${CUSTODY_OAUTH_TOKEN:-custody-phase0-valid}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - data
+
+  demo-run:
+    profiles: ["demo"]
+    build:
+      context: .
+      args:
+        SERVICE: demo
+    environment:
+      CUSTODY_DEMO_ORG_ADMIN_CLIENT_SECRET: ${CUSTODY_DEMO_ORG_ADMIN_CLIENT_SECRET:-demo-org-admin-local-only}
+      CUSTODY_DEMO_PROVIDER_CLIENT_SECRET: ${CUSTODY_DEMO_PROVIDER_CLIENT_SECRET:-demo-provider-local-only}
+      CUSTODY_DEMO_PATIENT_CLIENT_SECRET: ${CUSTODY_DEMO_PATIENT_CLIENT_SECRET:-demo-patient-local-only}
+      CUSTODY_DEMO_APP_CLIENT_SECRET: ${CUSTODY_DEMO_APP_CLIENT_SECRET:-demo-app-local-only}
+      CUSTODY_AUTOMATION_CLIENT_SECRET: ${CUSTODY_AUTOMATION_CLIENT_SECRET:-automation-local-only}
+      CUSTODY_EXTERNAL_EXPORTER_CLIENT_SECRET: ${CUSTODY_EXTERNAL_EXPORTER_CLIENT_SECRET:-external-exporter-local-only}
+    depends_on:
+      agent:
+        condition: service_healthy
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - identity
+
+networks:
+  identity:
+  data:
+
+volumes:
+  postgres_phase2_data:
+  tts_keys:
+  database_jwks:

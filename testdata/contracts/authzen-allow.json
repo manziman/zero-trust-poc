@@ -1,0 +1,7 @@
+{
+  "_fixture_profile": "openid-authzen-authorization-api-1.0-final",
+  "decision": true,
+  "context": {
+    "reason": "subject may read the requested records"
+  }
+}

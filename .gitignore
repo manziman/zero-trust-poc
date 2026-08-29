@@ -1,0 +1,11 @@
+.DS_Store
+.env
+.idea/
+.vscode/
+bin/
+coverage.out
+*.test
+*.log
+
+# Local PostgreSQL spike build output
+spikes/postgres-oauth/build/

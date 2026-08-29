@@ -1,0 +1,13 @@
+{
+  "_content_type": "application/x-www-form-urlencoded",
+  "_wire_encoding": "RFC 8693 form fields; this JSON object is review metadata, not the HTTP body",
+  "fields": {
+    "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+    "audience": "custody.local",
+    "action": "schedule.appointment.create",
+    "resource": "{\"provider_id\":\"17\",\"slot_id\":\"812\"}",
+    "requested_token_type": "urn:ietf:params:oauth:token-type:txn_token",
+    "subject_token": "synthetic-subject-token",
+    "subject_token_type": "urn:ietf:params:oauth:token-type:access_token"
+  }
+}

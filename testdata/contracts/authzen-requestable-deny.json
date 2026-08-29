@@ -1,0 +1,14 @@
+{
+  "_fixture_profile": "authzen-access-request-approval-profile-draft-1",
+  "decision": false,
+  "context": {
+    "access_request": {
+      "template": "custody.two-party.bulk-export.v1",
+      "expires_at": "2026-08-05T15:01:00Z",
+      "binding_token": "synthetic-integrity-protected-binding",
+      "display": {
+        "title": "Approve bulk patient-record export"
+      }
+    }
+  }
+}

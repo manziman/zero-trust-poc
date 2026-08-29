@@ -1,0 +1,9 @@
+.git
+.github
+.DS_Store
+.env
+bin
+coverage.out
+*.log
+phase-0-research.md
+zero-trust-poc-implementation-plan.md

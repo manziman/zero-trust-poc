@@ -1,0 +1,26 @@
+{
+  "_fixture_profile": "authzen-access-request-approval-profile-draft-1",
+  "subject": {
+    "type": "user",
+    "id": "human-alice",
+    "properties": {
+      "agent_id": "agent-42"
+    }
+  },
+  "action": {
+    "name": "bulk-export"
+  },
+  "resource": {
+    "type": "patient-records",
+    "id": "all"
+  },
+  "context": {
+    "txn": "97053963-771d-49cc-a4e3-20aad399c312",
+    "approval": {
+      "id": "approval-1b6e65c1",
+      "approved_at": "2026-08-05T15:00:00Z",
+      "approved_until": "2026-08-05T15:15:00Z",
+      "state": "synthetic-signed-approval-state"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://custody.local/contracts/validator-log.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event", "txn", "jti_hash", "system_user", "mapped_role", "org_id", "principal_kind", "access_profile", "subject", "action", "patient_id", "provider_id"],
+  "properties": {
+    "event": {"const": "postgres.oauth.accepted"},
+    "txn": {"type": "string", "minLength": 1, "maxLength": 128},
+    "jti_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "system_user": {"pattern": "^oauth:v2:"},
+    "mapped_role": {"enum": ["custody_patient_records_reader", "custody_schedule_availability_reader", "custody_schedule_appointment_creator", "custody_org_exporter", "custody_patient_importer"]},
+    "org_id": {"type": "string", "format": "uuid"},
+    "principal_kind": {"enum": ["human", "autonomous_agent", "external_machine"]},
+    "access_profile": {"enum": ["patient_self", "provider_assigned", "org_scoped"]},
+    "subject": {"type": "string", "pattern": "^[A-Za-z0-9-]+$"},
+    "action": {"type": "string", "minLength": 1},
+    "patient_id": {"pattern": "^(none|[1-9][0-9]*)$"},
+    "provider_id": {"pattern": "^(none|[1-9][0-9]*)$"}
+  }
+}

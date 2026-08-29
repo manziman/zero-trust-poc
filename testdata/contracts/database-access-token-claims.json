@@ -1,0 +1,28 @@
+{
+  "_fixture_profile": "custody-database-access-token-v1",
+  "header": {
+    "alg": "EdDSA",
+    "kid": "db-current",
+    "typ": "at+jwt"
+  },
+  "claims": {
+    "iss": "https://tts.custody.internal/database",
+    "aud": "postgresql://custody",
+    "iat": 1785949201,
+    "exp": 1785949230,
+    "jti": "88752c65-1283-47ee-9952-682ceda65fd7",
+    "txn": "97053963-771d-49cc-a4e3-20aad399c312",
+    "sub": "demo-patient",
+    "wl": "agent-42",
+    "act": {
+      "sub": "agent-42"
+    },
+    "action": "schedule.appointment.create",
+    "org_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "principal_kind": "human",
+    "access_profile": "patient_self",
+    "patient_id": "101",
+    "resource": {"provider_id": "17", "slot_id": "812"},
+    "db_role": "custody_schedule_appointment_creator"
+  }
+}

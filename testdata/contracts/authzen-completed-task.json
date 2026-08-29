@@ -1,0 +1,16 @@
+{
+  "_fixture_profile": "authzen-access-request-approval-profile-draft-1",
+  "task": {
+    "id": "task-7f287c4d",
+    "status": "approved"
+  },
+  "result": {
+    "mode": "reevaluate",
+    "approval": {
+      "id": "approval-1b6e65c1",
+      "approved_at": "2026-08-05T15:00:00Z",
+      "approved_until": "2026-08-05T15:15:00Z",
+      "state": "synthetic-signed-approval-state"
+    }
+  }
+}
