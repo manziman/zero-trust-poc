@@ -119,11 +119,11 @@ sequenceDiagram
     G->>R: Gateway token + byte-identical Transaction Token
     R->>T: Resource token + Transaction Token
     T->>T: Verify resource caller and Transaction Token
-    T->>T: Map action to database role; consume transaction once
+    T->>T: Map action to database role and consume transaction once
     T-->>R: Signed 30-second database token + database role
     R->>DB: OAUTHBEARER connection as selected role
     DB->>DB: Verify token and exact action-to-role relationship
-    DB->>DB: Construct system_user; apply privileges and forced RLS
+    DB->>DB: Construct system_user and apply privileges and forced RLS
     DB-->>R: Bounded result
     R-->>P: Application response
 ```

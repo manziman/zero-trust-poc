@@ -46,15 +46,15 @@ sequenceDiagram
 
     P->>W: principal OAuth token or machine identity
     W->>T: principal token + workload token + action + resource
-    T->>T: authenticate both; resolve authoritative profile; authorize
+    T->>T: authenticate both, resolve authoritative profile, and authorize
     T-->>W: signed Transaction Token
     W->>G: workload token + exact Transaction Token
     G->>G: validate route/action/resource/replay and req_wl binding
     G->>R: gateway token + byte-identical Transaction Token
     R->>D: resource token + opaque Transaction Token
-    D->>D: verify token; privately map action to database capability
+    D->>D: verify token and privately map action to database capability
     D-->>R: 30-second database OAuth token + database_user
-    R->>PG: SASL OAUTHBEARER; one operation
+    R->>PG: SASL OAUTHBEARER for one operation
     PG->>PG: validate token, map role, enforce privilege + forced RLS
     PG-->>R: bounded result
     R-->>P: result
