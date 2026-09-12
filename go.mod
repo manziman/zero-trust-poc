@@ -3,7 +3,7 @@ module github.com/manziman/custody
 go 1.26.0
 
 require (
-	github.com/jackc/pgx/v5 v5.10.0
+	github.com/jackc/pgx/v5 v5.11.0
 	github.com/lestrrat-go/jwx/v3 v3.2.0
 )
 
